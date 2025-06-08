@@ -50,13 +50,17 @@ class UserTest {
     @Test
     void testUserCreation() {
         UserDto userDto = new UserDto(user.getId(), user.getName(), user.getEmail(), user.getPassword(), user.getRole(), user.getCreatedAt(), user.getUpdatedAt());
+
         when(userMapper.toModel(any(UserDto.class))).thenReturn(user);
         when(userService.save(any(User.class))).thenReturn(user);
+        when(userMapper.toDto(user)).thenReturn(userDto); // <-- mock necessário
+
         ResponseEntity<Object> response = userController.createUser(userDto);
+
         assertNotNull(response.getBody());
         assertEquals(user.getId(), response.getBody());
-
     }
+
     @Test
     void testUserUpdate() {
         when(userService.update(any(User.class))).thenReturn(user);
@@ -69,7 +73,7 @@ class UserTest {
     @Test
     void testUserDeletion() {
         doNothing().when(userService).deleteById((user.getId()));
-        ResponseEntity<Object> response = userController.deleteUser(user.getId());
+        ResponseEntity<Object> response = userController.deleteUser(String.valueOf(user.getId()));
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(userService, times(1)).deleteById(user.getId());
     }
