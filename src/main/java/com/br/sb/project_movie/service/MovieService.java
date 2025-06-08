@@ -34,6 +34,8 @@ public class MovieService {
 
         return save;
     }
+
+
     @Transactional(readOnly = true)
     @Cacheable(value = "movies", key = "#id")
     public Movie findById(UUID id) {
@@ -43,13 +45,16 @@ public class MovieService {
         return movieRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Movie not found with id: " + id));
     }
+
+
     public void deleteById(UUID id) {
         if (!movieRepository.existsById(id)) {
             throw new IllegalArgumentException("Movie not found with id: " + id);
         }
         movieRepository.deleteById(id);
     }
-    public void update(Movie movie) {
+
+    public Movie update(Movie movie) {
         if (movie == null || movie.getId() == null) {
             throw new IllegalArgumentException("Movie or Movie ID cannot be null");
         }
@@ -57,8 +62,9 @@ public class MovieService {
         if (!movieRepository.existsById(movie.getId())) {
             throw new IllegalArgumentException("Movie not found with id: " + movie.getId());
         }
-        movieRepository.save(movie);
+        return movieRepository.save(movie);
     }
+
     @Transactional(readOnly = true)
     public boolean existsByTitle(String title) {
         if (title == null || title.isBlank()) {
@@ -66,6 +72,8 @@ public class MovieService {
         }
         return movieRepository.existsByTitle(title);
     }
+
+
     @Transactional(readOnly = true)
     @Cacheable(cacheManager = "movies", value = "movies", key = "#title")
     public List<Movie> findAll() {

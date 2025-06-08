@@ -23,11 +23,11 @@ public class UserController implements GenericController {
     private final UserMapper userMapper;
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createUser(UserDto userDto) {
+    public ResponseEntity<Object> createUser(@Valid UserDto userDto) {
         User user = userMapper.toModel(userDto);
-        User savedUser = userService.save(user);
-        HttpHeaders headers = gerarHaderLoccation("/users/" + savedUser.getId());
-        return new ResponseEntity<>(savedUser.getId(), headers, HttpStatus.CREATED);
+        UserDto savedUser = userMapper.toDto(userService.save(user));
+        HttpHeaders headers = gerarHaderLoccation("/users/" + savedUser.id());
+        return new ResponseEntity<>(savedUser.id(), headers, HttpStatus.CREATED);
     }
 
     @PutMapping("/update")
@@ -45,11 +45,12 @@ public class UserController implements GenericController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteUser(@RequestParam(value = "id", required = false) UUID id) {
+    public ResponseEntity<Object> deleteUser(@RequestParam(value = "id", required = false) String id) {
         if (id == null) {
             return ResponseEntity.badRequest().build();
         }
-        userService.deleteById(id);
+        UUID uuid = UUID.fromString(id);
+        userService.deleteById(uuid);
 
         return ResponseEntity.noContent().build();
     }
