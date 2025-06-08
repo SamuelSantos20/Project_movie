@@ -6,10 +6,11 @@ import com.br.sb.project_movie.model.User;
 import com.br.sb.project_movie.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.util.UUID;
 
 @RestController
@@ -22,19 +23,11 @@ public class UserController implements GenericController {
     private final UserMapper userMapper;
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createUser(@Valid UserDto userDto) {
-
-        if (userDto == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        User createdUser = userMapper.toModel(userDto);
-
-        createdUser = userService.save(createdUser);
-
-        URI uri = gerarHaderLoccation(createdUser.getId());
-
-        return ResponseEntity.ok(uri);
+    public ResponseEntity<Object> createUser(UserDto userDto) {
+        User user = userMapper.toModel(userDto);
+        User savedUser = userService.save(user);
+        HttpHeaders headers = gerarHaderLoccation("/users/" + savedUser.getId());
+        return new ResponseEntity<>(savedUser.getId(), headers, HttpStatus.CREATED);
     }
 
     @PutMapping("/update")
@@ -46,9 +39,9 @@ public class UserController implements GenericController {
 
         User user = userMapper.toModel(userDto);
 
-        User update = userService.update(user);
+        UserDto dto = userMapper.toDto(userService.update(user));
 
-        return ResponseEntity.ok(update);
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -60,6 +53,7 @@ public class UserController implements GenericController {
 
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping("/find/{id}")
     public ResponseEntity<Object> findById(@PathVariable("id") String id) {
         if (id == null || id.isBlank()) {
@@ -88,15 +82,6 @@ public class UserController implements GenericController {
                 .toList();
 
         return ResponseEntity.ok(userDtos);
-    }
-    @GetMapping("/exists/{title}")
-    public ResponseEntity<Object> existsByTitle(@PathVariable("title") String title) {
-        if (title == null || title.isBlank()) {
-            return ResponseEntity.badRequest().build();
-        }
-        boolean exists = userService.existsByTitle(title);
-
-        return ResponseEntity.ok(exists);
     }
 
 }

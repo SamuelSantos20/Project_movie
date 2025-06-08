@@ -1,7 +1,9 @@
 package com.br.sb.project_movie.dto;
 
+import com.br.sb.project_movie.model.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

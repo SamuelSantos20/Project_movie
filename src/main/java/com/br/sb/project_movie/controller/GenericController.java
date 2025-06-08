@@ -1,13 +1,14 @@
 package com.br.sb.project_movie.controller;
 
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.http.HttpHeaders;
 
 import java.net.URI;
-import java.util.UUID;
 
 public interface GenericController {
-    default URI gerarHaderLoccation(UUID id) {
-        return ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-                .buildAndExpand(id).toUri();
+    default HttpHeaders gerarHaderLoccation(String resourceUri) {
+        URI uri = URI.create(resourceUri);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(uri);
+        return headers;
     }
 }

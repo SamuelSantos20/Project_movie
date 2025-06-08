@@ -6,12 +6,11 @@ import org.mapstruct.*;
 
 import java.util.UUID;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS, imports = {UUID.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
-    @Mapping(target = "id", ignore = true)
     UserDto toDto(User user);
 
-    @Mapping(target = "id", ignore = true)
+
     User toModel(UserDto userDto);
 
 

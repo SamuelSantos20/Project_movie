@@ -63,12 +63,4 @@ public class UserService {
         return users;
 
     }
-
-
-    public boolean existsByTitle(String title) {
-        if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("User title cannot be null or blank");
-        }
-        return userRepository.existsByTitle(title);
-    }
 }
