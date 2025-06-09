@@ -49,14 +49,14 @@ public class HistoryService {
                 .orElseThrow(() -> new IllegalArgumentException("History not found with id: " + id));
     }
 
-    public void update(History history) {
+    public History update(History history) {
         if (history == null || history.getId() == null) {
             throw new IllegalArgumentException("History or History ID cannot be null");
         }
         if (!historyRepository.existsById(history.getId())) {
             throw new IllegalArgumentException("History not found with id: " + history.getId());
         }
-        historyRepository.save(history);
+        return historyRepository.save(history);
     }
 
     public void deleteById(UUID id) {
