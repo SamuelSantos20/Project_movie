@@ -23,7 +23,7 @@ public class MovieController implements GenericController {
     private final MovieMapper movieMapper;
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createMovie(@Valid MovieDto movieDto) {
+    public ResponseEntity<Object> createMovie( @RequestBody @Valid MovieDto movieDto) {
         Movie movie = movieMapper.toModel(movieDto);
         MovieDto savedMovie = movieMapper.toDto(movieService.saveMovie(movie));
         HttpHeaders headers = gerarHaderLoccation("/movies/" + savedMovie.id());
@@ -31,7 +31,7 @@ public class MovieController implements GenericController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateMovie(@Valid MovieDto movieDto) {
+    public ResponseEntity<Object> updateMovie( @RequestBody @Valid MovieDto movieDto) {
         Movie movie = movieMapper.toModel(movieDto);
         MovieDto savedMovie = movieMapper.toDto(movieService.update(movie));
         HttpHeaders headers = gerarHaderLoccation("/movies/" + savedMovie.id());

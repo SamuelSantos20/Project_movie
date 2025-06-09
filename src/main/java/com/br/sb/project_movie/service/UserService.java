@@ -1,5 +1,7 @@
 package com.br.sb.project_movie.service;
 
+import com.br.sb.project_movie.dto.UserDto;
+import com.br.sb.project_movie.mapper.UserMapper;
 import com.br.sb.project_movie.model.User;
 import com.br.sb.project_movie.repository.UserRepository;
 import com.br.sb.project_movie.validation.UserValidation;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,10 +22,12 @@ public class UserService {
 
     private final UserValidation userValidation;
 
+    private final UserMapper userMapper;
 
-    public User save(User user) {
-        userValidation.validate(user);
-        User savedUser = userRepository.save(user);
+    public User save(UserDto userDto) {
+        userValidation.validate(userDto);
+        User model = userMapper.toModel(userDto);
+        User savedUser = userRepository.save(model);
         return savedUser;
     }
     @Transactional(readOnly = true)
@@ -34,6 +39,15 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("User email cannot be null or blank");
+        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+    }
+
     public void deleteById(UUID id) {
         if (!userRepository.existsById(id)){
             throw new IllegalArgumentException("User not found with id: " + id);
@@ -42,14 +56,21 @@ public class UserService {
     }
 
 
-    public User update(User user) {
-        if (user == null || user.getId() == null) {
+    public User update(UserDto userDto) {
+        if (userDto == null || userDto.id() == null) {
             throw new IllegalArgumentException("User or User ID cannot be null");
         }
-        userValidation.validate(user);
-        if (!userRepository.existsById(user.getId())) {
-            throw new IllegalArgumentException("User not found with id: " + user.getId());
+        userValidation.validate(userDto);
+        if (!userRepository.existsById(userDto.id())) {
+            throw new IllegalArgumentException("User not found with id: " + userDto.id());
         }
+
+
+        Optional<User> optionalUser = userRepository.findById(userDto.id());
+        if (optionalUser.isEmpty()) {
+            throw new IllegalArgumentException("User not found with id: " + userDto.id());
+        }
+        User user = userMapper.partialUpdate(userDto, optionalUser.get());
         User save = userRepository.save(user);
         return save;
     }

@@ -23,23 +23,20 @@ public class UserController implements GenericController {
     private final UserMapper userMapper;
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createUser(@Valid UserDto userDto) {
-        User user = userMapper.toModel(userDto);
-        UserDto savedUser = userMapper.toDto(userService.save(user));
+    public ResponseEntity<Object> createUser(@RequestBody @Valid UserDto userDto) {
+        UserDto savedUser = userMapper.toDto(userService.save(userDto));
         HttpHeaders headers = gerarHaderLoccation("/users/" + savedUser.id());
         return new ResponseEntity<>(savedUser.id(), headers, HttpStatus.CREATED);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateUser(@Valid UserDto userDto) {
+    public ResponseEntity<Object> updateUser(@RequestBody @Valid UserDto userDto) {
 
         if (userDto == null || userDto.id() == null) {
             return ResponseEntity.badRequest().build();
         }
 
-        User user = userMapper.toModel(userDto);
-
-        UserDto dto = userMapper.toDto(userService.update(user));
+        UserDto dto = userMapper.toDto(userService.update(userDto));
 
         return ResponseEntity.ok(dto);
     }
