@@ -15,7 +15,7 @@ public interface UserMapper {
 
 
 @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-User partialUpdate(UserDto timesheetDTO, @MappingTarget User timesheet);
+User partialUpdate(UserDto userDto, @MappingTarget User user);
 
 
 }

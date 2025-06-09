@@ -1,5 +1,6 @@
 package com.br.sb.project_movie.validation;
 
+import com.br.sb.project_movie.dto.UserDto;
 import com.br.sb.project_movie.model.User;
 import com.br.sb.project_movie.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,23 +14,22 @@ public class UserValidation {
 
     private final UserRepository userRepository;
 
-    public void validate(User user) {
-
-        if (isValid(user)) {
+    public void validate(UserDto userDto) {
+        if (isInvalid(userDto)) {
             throw new IllegalArgumentException("User is not valid");
         }
     }
 
-    private boolean isValid(User user) {
-        Optional<User> optionalUser = userRepository.findById(user.getId());
-        ;
+    private boolean isInvalid(UserDto userDto) {
+        Optional<User> userWithEmail = userRepository.findByEmail(userDto.email());
 
-        if (optionalUser.isEmpty()) {
-            return false;
+        if (userDto.id() == null) {
+            // Criação: inválido se email já existe
+            return userWithEmail.isPresent();
         }
 
-
-        return optionalUser.stream().anyMatch(user1 -> user1.getEmail().equals(user.getEmail()));
+        // Atualização: inválido se email pertence a outro usuário
+        return userWithEmail.isPresent() && !userWithEmail.get().getId().equals(userDto.id());
     }
 
 }

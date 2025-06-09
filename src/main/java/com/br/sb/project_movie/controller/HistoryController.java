@@ -23,14 +23,15 @@ public class HistoryController implements GenericController {
     private final HistoryMapper historyMapper;
 
     @PostMapping("/create")
-    public ResponseEntity<Object> createHistory(@Valid HistoryDto historyDto) {
+    public ResponseEntity<Object> createHistory( @RequestBody @Valid HistoryDto historyDto) {
         History history = historyMapper.toModel(historyDto);
         HistoryDto savedHistory = historyMapper.toDto(historyService.saveHistory(history));
         HttpHeaders headers = gerarHaderLoccation("/history/" + savedHistory.id());
         return new ResponseEntity<>(savedHistory.id(), headers, HttpStatus.CREATED);
     }
+
     @PutMapping("/update")
-    public ResponseEntity<Object> updateHistory(@Valid HistoryDto historyDto) {
+    public ResponseEntity<Object> updateHistory( @RequestBody @Valid HistoryDto historyDto) {
         History history = historyMapper.toModel(historyDto);
         HistoryDto savedHistory = historyMapper.toDto(historyService.update(history));
         HttpHeaders headers = gerarHaderLoccation("/history/" + savedHistory.id());
