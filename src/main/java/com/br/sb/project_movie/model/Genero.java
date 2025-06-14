@@ -1,29 +1,48 @@
 package com.br.sb.project_movie.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Genero {
-    ACAO("Ação"),
-    AVENTURA("Aventura"),
-    COMEDIA("Comédia"),
-    DRAMA("Drama"),
-    FICCAO_CIENTIFICA("Ficção Científica"),
-    ROMANCE("Romance"),
-    TERROR("Terror"),
-    SUSPENSE("Suspense"),
-    ANIMACAO("Animação"),
-    DOCUMENTARIO("Documentário"),
-    FANTASIA("Fantasia"),
-    MUSICAL("Musical"),
-    POLICIAL("Policial"),
-    GUERRA("Guerra"),
-    WESTERN("Western");
+    ACAO("Ação", "Action"),
+    AVENTURA("Aventura", "Adventure"),
+    COMEDIA("Comédia", "Comedy"),
+    DRAMA("Drama", "Drama"),
+    FICCAO_CIENTIFICA("Ficção Científica", "Science Fiction"),
+    ROMANCE("Romance", "Romance"),
+    TERROR("Terror", "Horror"),
+    SUSPENSE("Suspense", "Thriller"),
+    ANIMACAO("Animação", "Animation"),
+    DOCUMENTARIO("Documentário", "Documentary"),
+    FANTASIA("Fantasia", "Fantasy"),
+    MUSICAL("Musical", "Musical"),
+    POLICIAL("Policial", "Crime"),
+    GUERRA("Guerra", "War"),
+    WESTERN("Western", "Western");
 
     private final String descricao;
+    private final String englishName;
 
-    Genero(String descricao) {
+    Genero(String descricao, String englishName) {
         this.descricao = descricao;
+        this.englishName = englishName;
     }
 
+    @JsonValue
     public String getDescricao() {
         return descricao;
+    }
+
+    @JsonCreator
+    public static Genero fromValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        for (Genero genero : values()) {
+            if (genero.descricao.equalsIgnoreCase(value) || genero.englishName.equalsIgnoreCase(value)) {
+                return genero;
+            }
+        }
+        throw new IllegalArgumentException("Unknown genre: " + value);
     }
 }

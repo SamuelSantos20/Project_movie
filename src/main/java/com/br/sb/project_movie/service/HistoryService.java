@@ -3,6 +3,8 @@ package com.br.sb.project_movie.service;
 import com.br.sb.project_movie.model.History;
 import com.br.sb.project_movie.repository.HistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class HistoryService {
 
     private final HistoryRepository historyRepository;
 
+    @CacheEvict(value = "histories", allEntries = true)
     public History saveHistory(History history) {
         if (history == null) {
             throw new IllegalArgumentException("History cannot be null");
@@ -31,8 +34,9 @@ public class HistoryService {
 
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "histories")
     public List<History> findAll() {
-        List<History> histories = historyRepository.findAll();
+        List<History> histories = historyRepository.findByAllHistory();
         if (histories.isEmpty()) {
             throw new IllegalArgumentException("No histories found");
         }
@@ -41,14 +45,20 @@ public class HistoryService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "histories")
     public History findById(UUID id) {
         if (id == null) {
             throw new IllegalArgumentException("History ID cannot be null");
         }
-        return historyRepository.findById(id)
+
+        History history = historyRepository.findByIdWithAll(id)
                 .orElseThrow(() -> new IllegalArgumentException("History not found with id: " + id));
+
+        return history;
+
     }
 
+    @CacheEvict(value = "histories", allEntries = true)
     public History update(History history) {
         if (history == null || history.getId() == null) {
             throw new IllegalArgumentException("History or History ID cannot be null");

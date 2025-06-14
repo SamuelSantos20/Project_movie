@@ -42,7 +42,7 @@ public class UserController implements GenericController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteUser(@RequestParam(value = "id", required = false) String id) {
+    public ResponseEntity<Object> deleteUser(@PathVariable(value = "id", required = false) String id) {
         if (id == null) {
             return ResponseEntity.badRequest().build();
         }

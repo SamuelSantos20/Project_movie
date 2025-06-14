@@ -1,6 +1,7 @@
 package com.br.sb.project_movie.controller;
 
 import com.br.sb.project_movie.dto.HistoryDto;
+import com.br.sb.project_movie.dto.HistoryOutputDto;
 import com.br.sb.project_movie.mapper.HistoryMapper;
 import com.br.sb.project_movie.model.History;
 import com.br.sb.project_movie.service.HistoryService;
@@ -11,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,7 +33,7 @@ public class HistoryController implements GenericController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> updateHistory( @RequestBody @Valid HistoryDto historyDto) {
+    public ResponseEntity<Object> updateHistory(@RequestBody @Valid HistoryDto historyDto) {
         History history = historyMapper.toModel(historyDto);
         HistoryDto savedHistory = historyMapper.toDto(historyService.update(history));
         HttpHeaders headers = gerarHaderLoccation("/history/" + savedHistory.id());
@@ -46,8 +48,8 @@ public class HistoryController implements GenericController {
         id = id.trim();
         UUID uuid = UUID.fromString(id);
         History history = historyService.findById(uuid);
-        HistoryDto historyDto = historyMapper.toDto(history);
-        return ResponseEntity.ok(historyDto);
+        HistoryOutputDto historyOutputDto = historyMapper.OUTPUT_DTO(history);
+        return ResponseEntity.ok(historyOutputDto);
     }
 
     @GetMapping("/find")
@@ -56,13 +58,16 @@ public class HistoryController implements GenericController {
         if (histories.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        var historyDtos = histories.stream()
-                .map(historyMapper::toDto)
+        List<HistoryOutputDto> list = histories.stream()
+                .map(historyMapper::OUTPUT_DTO)
                 .toList();
-        return ResponseEntity.ok(historyDtos);
+
+
+        return ResponseEntity.ok(list);
+
     }
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Object> deleteHistory(@RequestParam(value = "id", required = false) String id) {
+    public ResponseEntity<Object> deleteHistory(@PathVariable(value = "id", required = false) String id) {
         if (id == null) {
             return ResponseEntity.badRequest().build();
         }
