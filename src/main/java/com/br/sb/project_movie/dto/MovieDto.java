@@ -1,28 +1,34 @@
 package com.br.sb.project_movie.dto;
 
+import com.br.sb.project_movie.model.Cast;
 import com.br.sb.project_movie.model.Genero;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record MovieDto(UUID id,
-                       @NotBlank
+                       @NotBlank(message = "Title cannot be blank")
                        String title,
-                       @NotBlank
+                       @NotBlank(message = "Director cannot be blank")
                        String director,
-                       @NotNull
+                       @NotNull(message = "Genre cannot be null")
                        Genero genre,
-                       @NotNull
-                       LocalDateTime releaseDate,
-                       @NotBlank
+                       @NotNull(message = "Release date cannot be null")
+                       LocalDate releaseDate,
+                       @NotBlank(message = "Description cannot be blank")
                        String description,
-                       @NotNull
+                       @NotNull(message = "Rating cannot be null")
                        Double rating,
-                       @NotNull
+                       @NotNull(message = "Cast cannot be null")
+                       List<Cast> cast,
+                       @NotNull(message = "Duration cannot be null")
+                       Duration duration,
                        byte[] image,
-                       @NotNull
                        byte[] trailer,
                        LocalDateTime createdAt,
                        LocalDateTime updatedAt

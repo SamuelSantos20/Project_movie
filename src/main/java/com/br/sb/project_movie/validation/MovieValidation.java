@@ -21,12 +21,12 @@ public class MovieValidation {
 
     private boolean IsValid(Movie movie) {
 
-        Optional<Movie> optionalMovie = movieRepository.findById(movie.getId());
+        Optional<Movie> optionalMovie = movieRepository.findByTitle(movie.getTitle());
 
-        if (optionalMovie.isEmpty()) {
-            return false;
+        if (movie.getId() == null) {
+            return optionalMovie.isPresent();
         }
 
-        return optionalMovie.stream().anyMatch( movie1 -> movie1.getTitle().equals(movie.getTitle()));
+        return optionalMovie.isPresent() && !optionalMovie.get().getId().equals(movie.getId());
     }
 }

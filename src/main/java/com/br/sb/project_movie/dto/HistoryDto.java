@@ -8,12 +8,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record HistoryDto(UUID id,
-                         @NotNull
+                         @NotNull(message = "User cannot be null")
                          User user,
-                         @NotNull
+                         @NotNull(message = "Movie cannot be null")
                          Movie movie,
-                         @NotNull
+                         @NotNull(message = "Rating cannot be null")
                          Integer rating,
-                         @NotNull
+                         @NotNull(message = "View date cannot be null")
                          LocalDateTime viewDate) {
 }
