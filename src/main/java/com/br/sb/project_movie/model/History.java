@@ -5,8 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -33,4 +37,5 @@ public class History {
     @Temporal(TemporalType.TIMESTAMP)
     @CreatedDate
     private LocalDateTime viewDate;
+
 }

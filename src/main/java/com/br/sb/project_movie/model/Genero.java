@@ -18,7 +18,16 @@ public enum Genero {
     MUSICAL("Musical", "Musical"),
     POLICIAL("Policial", "Crime"),
     GUERRA("Guerra", "War"),
-    WESTERN("Western", "Western");
+    WESTERN("Faroeste", "Western"),
+    BIOGRAFIA("Biografia", "Biography"),
+    HISTORIA("Histórico", "History"),
+    FAMILIA("Família", "Family"),
+    MISTERIO("Mistério", "Mystery"),
+    CRIME("Crime", "Crime"),
+    REALITY_SHOW("Reality Show", "Reality"),
+    FICCAO("Ficção", "Fiction"),
+    EPOPEIA("Epopéia", "Epic"),
+    SUPER_HEROI("Super-herói", "Superhero");
 
     private final String descricao;
     private final String englishName;

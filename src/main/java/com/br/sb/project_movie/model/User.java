@@ -38,4 +38,7 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+
+
 }

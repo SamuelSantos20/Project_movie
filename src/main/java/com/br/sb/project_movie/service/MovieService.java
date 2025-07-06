@@ -1,24 +1,28 @@
 package com.br.sb.project_movie.service;
 
+import com.br.sb.project_movie.config.RabbitConfig;
+import com.br.sb.project_movie.dto.AsyncMovieAnalysisMessage;
 import com.br.sb.project_movie.dto.MovieDto;
 import com.br.sb.project_movie.mapper.MovieMapper;
 import com.br.sb.project_movie.model.Movie;
 import com.br.sb.project_movie.repository.MovieRepository;
 import com.br.sb.project_movie.validation.MovieValidation;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.bytedeco.ffmpeg.avformat.AVFormatContext;
-import org.bytedeco.ffmpeg.global.avformat;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +36,15 @@ public class MovieService {
 
     private final MovieMapper movieMapper;
 
+    private final ConcurrentMap<UUID, Movie> tempMovieCache = new ConcurrentHashMap<>();
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+
     @CacheEvict(value = "movies", allEntries = true)
     @SneakyThrows
     public Movie saveMovie(Movie movie) {
@@ -42,10 +55,10 @@ public class MovieService {
         if (movieRepository.existsByTitleAndIdNot(movie.getTitle(), movie.getId())) {
             throw new IllegalArgumentException("Movie with title '" + movie.getTitle() + "' already exists");
         }
-        AnalyzeVideo(movie);
-        Movie save = movieRepository.save(movie);
+        //AnalyzeVideo(movie);
+        Movie savedMovie = entityManager.merge(movie);
 
-        return save;
+        return savedMovie;
     }
 
 
@@ -106,10 +119,19 @@ public class MovieService {
         return movieRepository.existsByTitle(title);
     }
 
+    public void sendImageForFaceDetection(UUID movieId, byte[] imageBytes) {
+        AsyncMovieAnalysisMessage message = new AsyncMovieAnalysisMessage(movieId, imageBytes);
+        rabbitTemplate.convertAndSend(RabbitConfig.VIDEO_QUEUE, message);
+        log.info("Imagem com ID '{}' enviada para fila RabbitMQ para detecção facial", movieId);
+    }
+
 
     @Transactional(readOnly = true)
     @Cacheable(value = "movies")
     public List<Movie> findAll() {
+
+        movieRepository.findAll().forEach(movie -> log.info(movie.getClass().getName()));
+
         if (movieRepository.findAll().isEmpty()) {
             throw new IllegalArgumentException("No movies found");
         }
@@ -131,7 +153,15 @@ public class MovieService {
         return movies;
     }
 
-    @SneakyThrows
+    public void storePendingMovie(UUID id, Movie movie) {
+        tempMovieCache.put(id, movie);
+    }
+
+    public Movie getPendingMovie(UUID id) {
+        return tempMovieCache.remove(id); // remove ao buscar
+    }
+
+    /*@SneakyThrows
     public void AnalyzeVideo(Movie movie) {
         log.info("AnalyzeVideo");
         log.info("Title: {}", movie.getTitle());
@@ -174,7 +204,7 @@ public class MovieService {
         }
 
 
-    }
+    }*/
 
 
 }
