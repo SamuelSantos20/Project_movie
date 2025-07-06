@@ -19,4 +19,15 @@ public record MovieOutputDto(
                                  MovieDto movieDto) {
     }
 
+    public record MovieOutput(UUID id,
+                           String title,
+                           String description,
+                           String genre,
+                           String director,
+                           int releaseYear,
+                           double rating,
+                           String image,
+                           String trailer) {
+    }
+
 }

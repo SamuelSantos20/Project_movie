@@ -1,7 +1,7 @@
 package com.br.sb.project_movie.model;
 
 import com.br.sb.project_movie.util.DurationToStringConverter;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,11 +23,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "movie")
 @EntityListeners(AuditingEntityListener.class)
+@JsonFilter("MovieFilter")
 public class Movie {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @Column(name = "title", nullable = false, length = 200, columnDefinition = "VARCHAR(200)")
+    @Column(name = "title", nullable = false, length = 200, columnDefinition = "VARCHAR(200)", unique = true)
     private String title;
     @Column(name = "director", nullable = false, length = 100, columnDefinition = "TEXT")
     private String director;
@@ -49,6 +51,8 @@ public class Movie {
     @Column(name = "duration", nullable = false, columnDefinition = "INTERVAL")
     @Convert(converter = DurationToStringConverter.class)
     private Duration duration;
+    @Column(name = "classification", nullable = false, length = 100, columnDefinition = "VARCHAR(100)")
+    private String classification;
     @Column(name = "image", nullable = false, columnDefinition = "LONGBLOB")
     private byte[] image;
     @Column(name = "trailer", nullable = false, columnDefinition = "LONGBLOB")
@@ -61,7 +65,6 @@ public class Movie {
     @Temporal(TemporalType.TIMESTAMP)
     @LastModifiedDate
     private LocalDateTime updatedAt;
-
 
     @Override
     public String toString() {

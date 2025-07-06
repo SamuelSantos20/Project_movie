@@ -28,6 +28,8 @@ public record MovieDto(UUID id,
                        List<Cast> cast,
                        @NotNull(message = "Duration cannot be null")
                        Duration duration,
+                       @NotBlank(message = "Classification cannot be blank")
+                       String classification,
                        byte[] image,
                        byte[] trailer,
                        LocalDateTime createdAt,

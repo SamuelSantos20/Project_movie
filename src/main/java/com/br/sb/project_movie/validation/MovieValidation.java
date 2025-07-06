@@ -15,7 +15,7 @@ public class MovieValidation {
     public void validate(Movie movie) {
 
         if(IsValid(movie)) {
-            throw new IllegalArgumentException("Movie is not valid");
+            throw new IllegalArgumentException("Já existe um filme com este título.");
         }
     }
 
