@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,8 +24,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "movie")
 @EntityListeners(AuditingEntityListener.class)
-@JsonFilter("MovieFilter")
-public class Movie {
+//@JsonFilter("MovieFilter")
+public class Movie implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

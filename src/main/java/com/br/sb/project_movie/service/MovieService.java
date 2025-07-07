@@ -119,8 +119,8 @@ public class MovieService {
         return movieRepository.existsByTitle(title);
     }
 
-    public void sendImageForFaceDetection(UUID movieId, byte[] imageBytes) {
-        AsyncMovieAnalysisMessage message = new AsyncMovieAnalysisMessage(movieId, imageBytes);
+    public void sendImageForFaceDetection(UUID movieId, byte[] imageBytes, Movie movie) {
+        AsyncMovieAnalysisMessage message = new AsyncMovieAnalysisMessage(movieId, imageBytes, movie);
         rabbitTemplate.convertAndSend(RabbitConfig.VIDEO_QUEUE, message);
         log.info("Imagem com ID '{}' enviada para fila RabbitMQ para detecção facial", movieId);
     }
@@ -161,50 +161,10 @@ public class MovieService {
         return tempMovieCache.remove(id); // remove ao buscar
     }
 
-    /*@SneakyThrows
-    public void AnalyzeVideo(Movie movie) {
-        log.info("AnalyzeVideo");
-        log.info("Title: {}", movie.getTitle());
-        log.info("Trailer: {}", movie.getTrailer());
-        log.info("Image: {}", movie.getImage());
-        try {
-            Path tempFile = Files.createTempFile("video_temp", ".mp4");
-            Files.write(tempFile, movie.getTrailer());
-
-            AVFormatContext pFormatContext = new AVFormatContext(null);
-
-            if (avformat.avformat_open_input(pFormatContext, tempFile.toString(), null, null) != 0) {
-                throw new RuntimeException("Couldn't open file");
-            }
-
-            if (avformat.avformat_find_stream_info(pFormatContext, (org.bytedeco.ffmpeg.avutil.AVDictionary) null) < 0) {
-                throw new RuntimeException("Couldn't find stream info");
-            }
-
-            log.info("Duration (microseconds): " + pFormatContext.duration());
-            log.info("Number of streams: " + pFormatContext.nb_streams());
-            log.info("Video codec: " + pFormatContext.streams(0).codecpar().codec_id());
-            log.info("Video width: " + pFormatContext.streams(0).codecpar().width());
-            log.info("Video height: " + pFormatContext.streams(0).codecpar().height());
-            log.info("Video bitrate: " + pFormatContext.streams(0).codecpar().bit_rate());
-            log.info("Video frame rate: " + pFormatContext.streams(0).avg_frame_rate().num() + "/" + pFormatContext.streams(0).avg_frame_rate().den());
-            log.info("Video format: " + pFormatContext.streams(0).codecpar().format());
-            log.info("Video profile: " + pFormatContext.streams(0).codecpar().profile());
-            log.info("Video level: " + pFormatContext.streams(0).codecpar().level());
-            log.info("Video codec tag: " + pFormatContext.streams(0).codecpar().codec_tag());
-            log.info("Video codec id: " + pFormatContext.streams(0).codecpar().codec_id());
-            log.info("Video time base: " + pFormatContext.streams(0).time_base().num() + "/" + pFormatContext.streams(0).time_base().den());
-            log.info("Video start time: " + pFormatContext.start_time());
-            log.info("Video bit rate: " + pFormatContext.bit_rate());
-            avformat.avformat_close_input(pFormatContext);
-            Files.deleteIfExists(tempFile);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error analyzing video: " + e.getMessage(), e);
-        }
-
-
-    }*/
-
+    @Transactional(readOnly = true)
+    @Cacheable(value = "movies")
+    public boolean existsById(UUID id) {
+        return movieRepository.existsById(id);
+    }
 
 }

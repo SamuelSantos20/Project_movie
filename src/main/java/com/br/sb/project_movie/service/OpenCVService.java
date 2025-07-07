@@ -18,14 +18,16 @@ import org.bytedeco.opencv.global.opencv_imgproc;
 import org.bytedeco.opencv.opencv_core.*;
 import org.bytedeco.opencv.opencv_dnn.Net;
 import org.bytedeco.opencv.opencv_videoio.VideoCapture;
-import org.opencv.imgcodecs.Imgcodecs;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.support.ListenerExecutionFailedException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -43,11 +45,8 @@ import static org.bytedeco.opencv.global.opencv_videoio.*;
 public class OpenCVService {
 
     private static final String YOLO_MODEL_RESOURCE = "model/yolov8n-face-lindevs.onnx";
-    private static final String VIDEO_QUEUE = "video-processamento";
     private Net yoloNet;
     private final MovieService movieService;
-    private final MovieCacheService movieCacheService;
-
 
     private final AnalysisStatusService analysisStatusService;
 
@@ -62,7 +61,6 @@ public class OpenCVService {
             throw new RuntimeException("Native library loading failed.", e);
         }
     }
-
 
 
     @PostConstruct
@@ -154,12 +152,27 @@ public class OpenCVService {
 
     @RabbitListener(queues = RabbitConfig.VIDEO_QUEUE)
     public void processImage(AsyncMovieAnalysisMessage message) {
-        log.info("Mensagem recebida: {}", message);
         UUID id = message.getId();
         byte[] imageBytes = message.getImageBytes();
+        Movie movie = message.getMovie();
 
         try {
             log.info("Recebida imagem para análise com ID: {}", id);
+
+            // Verificar se o filme já foi processado
+            if (movieService.existsById(id)) {
+                log.info("Filme com ID {} já processado, ignorando.", id);
+                analysisStatusService.setStatus(id.toString(), StatusProcessamento.CONCLUIDO.getDescricao());
+                return;
+            }
+
+            // Verificar duplicata por título
+            if (movieService.existsByTitle(movie.getTitle())) {
+                log.info("Filme com título '{}' já existe, ignorando salvamento.", movie.getTitle());
+                analysisStatusService.setStatus(id.toString(), StatusProcessamento.CONCLUIDO.getDescricao());
+                return;
+            }
+
             Mat imageMat = imdecode(new Mat(imageBytes), IMREAD_COLOR);
             boolean hasFace = detectFacesYOLO(imageMat);
 
@@ -167,23 +180,29 @@ public class OpenCVService {
                 log.info("Rosto detectado com sucesso. Salvando Movie com ID: {}", id);
                 analysisStatusService.setStatus(id.toString(), StatusProcessamento.CONCLUIDO.getDescricao());
 
-                // Recuperar o Movie temporário de algum cache/memória e salvar
-                Movie movie = movieCacheService.getMovie(message.getId());
+                if (movie.getId() == null) {
+                    movie.setId(id);
+                }
+
+                if (movie.getReleaseDate() == null) {
+                    movie.setReleaseDate(LocalDate.now());
+                }
+
                 movie.setImage(imageBytes);
-                movieService.saveMovie(movie);
-                movieCacheService.removeCachedMovie(message.getId());
-
-
+                log.info("Movie recebido e pronto para salvar: {}", movie);
+                movieService.saveMovie(movie); // Salva apenas se não houver duplicatas
             } else {
                 log.warn("Nenhum rosto detectado. Status marcado como ERRO para ID: {}", id);
                 analysisStatusService.setStatus(id.toString(), StatusProcessamento.ERRO.getDescricao());
             }
-
         } catch (Exception e) {
             log.error("Erro ao processar imagem para ID {}: {}", id, e.getMessage());
             analysisStatusService.setStatus(id.toString(), StatusProcessamento.ERRO.getDescricao());
+            throw new ListenerExecutionFailedException("Erro ao processar mensagem",
+                    new AmqpRejectAndDontRequeueException(e));
         }
     }
+
 
 
     public boolean detectFacesYOLO(Mat image) {
@@ -200,7 +219,7 @@ public class OpenCVService {
 
         // 3. Pré-processamento CORRETO com Scalar
         Mat blob = new Mat();
-        opencv_dnn.blobFromImage(image, blob, 1.0/255.0,
+        opencv_dnn.blobFromImage(image, blob, 1.0 / 255.0,
                 new Size(640, 640),
                 new Scalar(0.0, 0.0, 0.0, 0.0), // Forma correta
                 true, false, opencv_core.CV_32F);
@@ -229,16 +248,16 @@ public class OpenCVService {
                 float w = idx.get(0, 2, i);
                 float h = idx.get(0, 3, i);
 
-            log.info("Confidence: {}", confidence);
-            log.info("Center X: {}", cx);
-            log.info("Center Y: {}", cy);
-            log.info("Width: {}", w);
-            log.info("Height: {}", h);
+                log.info("Confidence: {}", confidence);
+                log.info("Center X: {}", cx);
+                log.info("Center Y: {}", cy);
+                log.info("Width: {}", w);
+                log.info("Height: {}", h);
 
-                int left = (int)((cx - w/2) * image.cols());
-                int top = (int)((cy - h/2) * image.rows());
-                int width = (int)(w * image.cols());
-                int height = (int)(h * image.rows());
+                int left = (int) ((cx - w / 2) * image.cols());
+                int top = (int) ((cy - h / 2) * image.rows());
+                int width = (int) (w * image.cols());
+                int height = (int) (h * image.rows());
 
                 if (width >= MIN_FACE_SIZE && height >= MIN_FACE_SIZE) {
                     log.info("Face detected at ({}, {}), size: ({}, {})", left, top, width, height);

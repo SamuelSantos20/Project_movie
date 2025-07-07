@@ -1,6 +1,7 @@
 package com.br.sb.project_movie.service;
 
 import com.br.sb.project_movie.model.Movie;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.cache.RedisCacheManager;
@@ -18,6 +19,7 @@ public class MovieCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final RedisCacheManager redisCacheManager;
+    private final ObjectMapper objectMapper;  // INJETAR O OBJECTMAPPER
 
     public void cacheMovie(UUID uuid, Movie movie) {
         String key = "movie:" + uuid;
@@ -26,8 +28,11 @@ public class MovieCacheService {
 
     public Movie getCachedMovie(UUID uuid) {
         String key = "movie:" + uuid;
-        return (Movie) redisTemplate.opsForValue().get(key);
+        Object cachedObject = redisTemplate.opsForValue().get(key);
+        if (cachedObject == null) return null;
+        return objectMapper.convertValue(cachedObject, Movie.class);
     }
+
 
     public void removeCachedMovie(UUID uuid) {
         redisTemplate.delete("movie:" + uuid);
@@ -61,10 +66,12 @@ public class MovieCacheService {
             throw new IllegalArgumentException("Movie ID cannot be null");
         }
         String key = "movie:" + id;
-        Movie movie = (Movie) redisTemplate.opsForValue().get(key);
-        if (movie == null) {
+        Object cachedObject = redisTemplate.opsForValue().get(key);
+        if (cachedObject == null) {
             throw new IllegalArgumentException("Movie not found with id: " + id);
         }
-        return movie;
+        // Converte LinkedHashMap para Movie
+        return objectMapper.convertValue(cachedObject, Movie.class);
     }
+
 }

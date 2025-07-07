@@ -68,22 +68,17 @@ public class MovieController implements GenericController {
             try {
                 UUID uuid = UUID.randomUUID();
                 Movie movieWithId = movieMapper.toModel(json);
+                movieWithId.setId(uuid);
                 movieWithId.setTrailer(trailer.getBytes());
 
-                // coloca no cache temporário
-                movieCacheService.cacheMovie(uuid, movieWithId);
-
-                // Enviar para RabbitMQ: json + image + trailer + uuid
-                AsyncMovieAnalysisMessage message = new AsyncMovieAnalysisMessage(uuid, image.getBytes());
+                AsyncMovieAnalysisMessage message = new AsyncMovieAnalysisMessage(uuid, image.getBytes(), movieWithId);
                 rabbitTemplate.convertAndSend(RabbitConfig.VIDEO_QUEUE, message);
-                String cacheKey = "movie:" + uuid;
-                redisTemplate.opsForValue().set(cacheKey, movieWithId);
 
-                //Retorna o ID para acompanhamento do status
                 analysisStatusService.setStatus(uuid.toString(), StatusProcessamento.EM_PROCESSAMENTO.getDescricao());
+
                 return ResponseEntity.accepted().body(Map.of(
                         "message", "Processamento iniciado. Use o ID para acompanhar.",
-                        "id", uuid, "Utilize esse identificador para limpar o cache", cacheKey
+                        "id", uuid
                 ));
             } catch (Exception e) {
                 return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

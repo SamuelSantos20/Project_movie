@@ -56,6 +56,7 @@ class MovieTest {
         movie.setTrailer("trailerBytes".getBytes());
         movie.setCreatedAt(LocalDateTime.now());
         movie.setUpdatedAt(LocalDateTime.now());
+        movie.setClassification("PG-13");
 
         elenco = new ArrayList<>();
         elenco.add(new Cast(UUID.randomUUID(), "Actor 1", LocalDate.now(), "Brazilian"));
@@ -71,6 +72,7 @@ class MovieTest {
                 movie.getRating(),
                 elenco,
                 movie.getDuration(),
+                movie.getClassification(),
                 movie.getImage(),
                 movie.getTrailer(),
                 movie.getCreatedAt(),

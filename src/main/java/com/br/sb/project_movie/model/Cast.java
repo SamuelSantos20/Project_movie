@@ -20,7 +20,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class Cast {
+public class Cast implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

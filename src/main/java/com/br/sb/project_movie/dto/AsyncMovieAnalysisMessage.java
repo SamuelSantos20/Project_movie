@@ -1,5 +1,6 @@
 package com.br.sb.project_movie.dto;
 
+import com.br.sb.project_movie.model.Movie;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,4 +18,5 @@ import java.util.UUID;
 public class AsyncMovieAnalysisMessage implements Serializable {
     private UUID id;
     private byte[] imageBytes;
+    private Movie movie;
 }
